@@ -243,9 +243,10 @@ ORDER BY procentualní_zastoupení DESC;
 --Koncentrace nehod v čase
 CREATE OR REPLACE VIEW accidents_in_time AS 
     SELECT n.p1, 
-           v.id_vozidla, 
            p2a,
            p2b, 
+           d,
+           e,
            p5a, 
            p6, 
            p9, 
@@ -253,16 +254,11 @@ CREATE OR REPLACE VIEW accidents_in_time AS
            p13b, 
            p13c, 
            p14, 
-           p29, 
-           p34, 
-           p36, 
-           p44, 
-           p59a, 
-           p59g 
-    FROM dopravni_nehody_cr.nehody as n
-    LEFT JOIN chodci as ch ON ch.p1 = n.p1
-    LEFT JOIN vozidla as v ON v.p1 = n.p1 
-    LEFT JOIN nasledky as ns ON ns.p1 = n.p1 AND ns.id_vozidla = v.id_vozidla
+           p34,
+           p36
+    FROM dopravni_nehody_cr.nehody AS n
+    LEFT JOIN dopravni_nehody_cr.gps ON gps.p1 = n.p1
+
 
 --Nehody s účastí chodců, stav chodce, dle zavinění, nejčastější příčiny zavinění
 CREATE OR REPLACE VIEW pedestrian_involvement AS
