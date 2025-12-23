@@ -244,7 +244,7 @@ ORDER BY procentualní_zastoupení DESC;
 CREATE OR REPLACE VIEW accidents_in_time AS 
     SELECT n.p1, 
            v.id_vozidla, 
-           p2a, 
+           p2a,
            p2b, 
            p5a, 
            p6, 
@@ -261,8 +261,8 @@ CREATE OR REPLACE VIEW accidents_in_time AS
            p59g 
     FROM dopravni_nehody_cr.nehody as n
     LEFT JOIN chodci as ch ON ch.p1 = n.p1
-    LEFT JOIN vozidla as v ON v.p1 = n.p1
-    LEFT JOIN nasledky as ns ON ns.p1 = n.p1
+    LEFT JOIN vozidla as v ON v.p1 = n.p1 
+    LEFT JOIN nasledky as ns ON ns.p1 = n.p1 AND ns.id_vozidla = v.id_vozidla
 
 --Nehody s účastí chodců, stav chodce, dle zavinění, nejčastější příčiny zavinění
 CREATE OR REPLACE VIEW pedestrian_involvement AS
@@ -384,7 +384,7 @@ CREATE OR REPLACE VIEW accidents_crash AS
     FROM dopravni_nehody_cr.nehody as n
     LEFT JOIN dopravni_nehody_cr.chodci as ch ON ch.p1 = n.p1
     LEFT JOIN dopravni_nehody_cr.vozidla as v ON v.p1 = n.p1
-    LEFT JOIN dopravni_nehody_cr.nasledky as ns ON ns.p1 = n.p1
+    LEFT JOIN dopravni_nehody_cr.nasledky as ns ON ns.p1 = n.p1 AND ns.id_vozidla = v.id_vozidla
     LEFT JOIN dopravni_nehody_cr.gps ON gps.p1 = n.p1;
 
 --Analýza poskytování první pomoci
