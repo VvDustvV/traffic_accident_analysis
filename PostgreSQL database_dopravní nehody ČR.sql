@@ -237,13 +237,30 @@ FROM dopravni_nehody_cr.nehody
 GROUP BY p2b
 ORDER BY procentualní_zastoupení DESC;
 
+
+--Přidání sloupců s měsícem a rokem nehody pro snazší manupulaci
+ALTER TABLE dopravni_nehody_cr.nehody
+ADD COLUMN accident_year INT,
+ADD COLUMN accident_month INT;
+UPDATE dopravni_nehody_cr.nehody
+SET 
+    accident_year = EXTRACT(YEAR FROM TO_DATE(p2a, 'DD.MM.YYYY')),
+    accident_month = EXTRACT(MONTH FROM TO_DATE(p2a, 'DD.MM.YYYY'));
+
+
+--V původních datech je hmotná škoda vydělená 100. Čídla jsou i tak hodně velká, proto to ještě vydělím 1000 a měřítko bude ve statisících. 
+UPDATE dopravni_nehody_cr.nehody
+SET p14 = p14 / 1000;
+
 --kontrola prázdných hodnot proběhne v pythonu
 
 #10 Vytvoření viws
 --Koncentrace nehod v čase
 CREATE OR REPLACE VIEW accidents_in_time AS 
-    SELECT n.p1, 
+    SELECT n.p1,
            p2a,
+           accident_year,
+           accident_month,
            p2b, 
            d,
            e,
@@ -264,6 +281,8 @@ CREATE OR REPLACE VIEW accidents_in_time AS
 CREATE OR REPLACE VIEW pedestrian_involvement AS
     SELECT c.p1,
            p2a,
+           accident_year,
+           accident_month,
            p2b,
            d,
            e,
@@ -299,6 +318,8 @@ CREATE OR REPLACE VIEW pedestrian_involvement AS
 CREATE OR REPLACE VIEW animal_involvement AS 
 SELECT n.p1,
        p2a,
+       accident_year,
+       accident_month,
        p2b,
        d,
        e,
@@ -333,12 +354,16 @@ WHERE p6 = '5' OR p6 = '6'
 CREATE OR REPLACE VIEW accidents_crash AS 
     SELECT n.p1,
            p2a,
+           accident_year,
+           accident_month,
            p4a,
            p4b,
            d,
            e,
            h,
+           k,
            p5a,
+           p6,
            p8,
            p9,
            p10,
