@@ -1,7 +1,7 @@
+import requests
 import psycopg2
-import openpyxl as opxl
-
 import pandas as pd
+from pyproj import Transformer
 
 def execute_sql(sql_query: str) -> list: 
     connection = None
@@ -27,39 +27,21 @@ def execute_sql(sql_query: str) -> list:
 
         return df_name
 
-# Funkce pro kontrolu prázdných hodnot
-def null_values(table):
-    counts = table.isna().sum()
-    df_na_check = pd.DataFrame({
-        'column': counts.index,
-        'na_count': counts.values,
-        'na%': (counts.values / len(table) * 100).round(2)
-    })
-    df_na_check = df_na_check.merge(df_column_names,
-                                    left_on='column',
-                                    right_on='code',
-                                    how='left')
-    df_na_check = df_na_check.drop(columns=['code','table_name'])
-    df_na_check = df_na_check[['column','descr','name_column_en','na_count','na%']]
 
-    row_count = pd.DataFrame({
-        'column': ['TOTAL'],
-        'descr': ['Celkový počet záznamů'],
-        'name_column_en': ['Total row count'],
-        'na_count': [len(table)],
-        'na%': [' ']
-    })
-    df_na_check = pd.concat([df_na_check, row_count], ignore_index=True)
-    return df_na_check
+transformer = Transformer.from_crs("EPSG:5514", "EPSG:4326", always_xy=True)
 
-def get_table_column_names(table):
-    column_names = table.columns
-    df_column_info = pd.DataFrame({
-        'column': column_names
-    })
-    df_column_info = df_column_info.merge(df_column_names,
-                                          left_on='column',
-                                          right_on='code',
-                                          how='left')
-    df_column_info = df_column_info.drop(columns=['code'])
-    return df_column_info
+def get_and_transform_data():
+    query_gps = execute_sql("SELECT DISTINCT p1, p2a, p4b d, e FROM dopravni_nehody_cr.gps WHERE d < 0 LEFT JOIN dopravni_nehody_cr.nehody ON gps.p1 = nehody.p1""")
+    if query_gps is not None and not query_gps.empty:
+        val_e = query_gps['e'].values if (query_gps['e'].values < 0).all() else query_gps['e'].values * -1
+        val_d = query_gps['d'].values if (query_gps['d'].values < 0).all() else query_gps['d'].values * -1
+
+        lon, lat = transformer.transform(val_e, val_d)
+
+        query_gps['lat'] = lat
+        query_gps['lon'] = lon
+
+        execute_sql("""CREATE TABLE IF NOT EXISTS opravni_nehody_cr.gps_WGS84
+                          SELECT * FROM query_gps""")        
+        return query_gps[['p1', 'lat', 'lon']]
+    return None
