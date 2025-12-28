@@ -353,18 +353,16 @@ WHERE p6 = '5' OR p6 = '6'
 --Analýza srážek a havárií
 CREATE OR REPLACE VIEW accidents_crash AS 
     SELECT n.p1,
+           v.id_vozidla,
            p2a,
            accident_year,
            accident_month,
            p4a,
            p4b,
-           d,
-           e,
-           h,
-           k,
            p5a,
            p6,
            p8,
+           p8a,
            p9,
            p10,
            p11,
@@ -385,6 +383,12 @@ CREATE OR REPLACE VIEW accidents_crash AS
            p24,
            p27,
            p28,
+           p29,
+           p29a,
+           p29b,
+           p30,
+           p30a,
+           p30b,
            p33c,
            p33g,
            p34,
@@ -406,7 +410,6 @@ CREATE OR REPLACE VIEW accidents_crash AS
     LEFT JOIN dopravni_nehody_cr.chodci as ch ON ch.p1 = n.p1
     LEFT JOIN dopravni_nehody_cr.vozidla as v ON v.p1 = n.p1
     LEFT JOIN dopravni_nehody_cr.nasledky as ns ON ns.p1 = n.p1 AND ns.id_vozidla = v.id_vozidla
-    LEFT JOIN dopravni_nehody_cr.gps ON gps.p1 = n.p1;
 
 --Analýza poskytování první pomoci
 CREATE OR REPLACE VIEW first_aid AS

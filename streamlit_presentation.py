@@ -1,5 +1,4 @@
 import streamlit as st
-from da import execute_sql
 import plotly.express as px
 import pandas as pd
 from streamlit_folium import st_folium
@@ -7,11 +6,39 @@ from folium.plugins import HeatMap
 import folium
 from pyproj import Transformer
 from pprint import pprint
+import psycopg2
 
 st.set_page_config(page_title="Analýza nehod", page_icon="📊",layout='wide')
 
 
 # funkce
+
+# Import z SQL databáze (postgre)
+@st.cache_data
+def execute_sql(sql_query: str) -> list: 
+    connection = None
+    data = None
+    try:
+        connection =  psycopg2.connect(
+            host='localhost',
+            user='postgres',
+            password='kjm57',
+            dbname='postgres')
+    
+        cursor = connection.cursor()
+        cursor.execute(sql_query)
+        data = cursor.fetchall()
+        colnames = [cell[0] for cell in cursor.description]
+        df_name = pd.DataFrame(data, columns=colnames)
+    except Exception as E:
+        print('ERROR')
+    
+    finally:
+        if connection is not None:
+            connection.close()
+
+        return df_name
+
 # unifikace stylu grafů
 def unify_graphs(graph):
     graph.update_xaxes(type='category')
@@ -38,20 +65,93 @@ def get_and_transform_data():
     return None
 
 # Poměry v seskupených kategoriích
-def ratio_in_category(data, groupbys, counted_cat_ratio):
-    table_group = data.groupby(groupbys).size().reset_index(name='total')
-    seskupení = data.groupby([groupbys, counted_cat_ratio])[counted_cat_ratio].size().reset_index(name='total_cat')
-    table = pd.merge(seskupení, 
-                     table_group, 
-                     on=groupbys, 
-                     how='left')
-    table['ratio'] = table['total_cat']/table['total']*100
+def ratio_in_category(data, id_column, counted_cat_ratio):
+    df_unique = data.drop_duplicates(subset=[id_column, counted_cat_ratio])
+    df_grouped = df_unique.groupby(counted_cat_ratio).size().reset_index(name='Pocet_vyskytu')
+    total = df_grouped['Pocet_vyskytu'].sum()
+    df_grouped['total'] = total
+    df_grouped['ratio'] = (df_grouped['Pocet_vyskytu']/df_grouped['total']*100).round(2)
+    df_grouped = df_grouped.drop(columns=['total'])
+    df_grouped['Pocet_vyskytu'] = pd.to_numeric(df_grouped['Pocet_vyskytu'])
+    df_grouped = df_grouped.sort_values('ratio', ascending=False)
+    return df_grouped
+
+# Top výskyty v kategoriích (non-int sloupce)
+def top_3_in_cat(table, id_column, category_column):
+    df_unique = table.drop_duplicates(subset=[id_column, category_column])
+    top_3 = df_unique.groupby(category_column).size().reset_index(name='Pocet_vyskytu')
+    top_3 = top_3.sort_values(by='Pocet_vyskytu', ascending=False)
+    return top_3.head(3).reset_index()
+def top_1_in_cat(table, id_column, category_column):
+    return top_3_in_cat(table, id_column, category_column).head(1).reset_index()
+
+# Překladač sloupců a kategorií daných sloupců
+def get_table_column_name(column):
+    column_name = execute_sql(f"""SELECT descr FROM dopravni_nehody_cr.column_names
+                              WHERE code = '{column}'""")
+    return column_name.iloc[0, 0]
+
+def categories_translate(table, column):
+    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM dopravni_nehody_cr.data_description
+                                   WHERE column_code = '{column}'""")
+    if cat_items is None or cat_items.empty:
+        return table
+    df = pd.merge(table,
+                  cat_items,
+                  left_on=column,
+                  right_on='id_detail',
+                  how='left')
+    rename_column = get_table_column_name(column)
+    df = df.rename(columns={'description_detail_2': rename_column})
+    df = df.drop(columns=['id_detail', column])
+    return df
+
+def translate(table):
+    varchars = table.select_dtypes(include=['object']).columns
+
+    for column in varchars:
+        table = categories_translate(table, column)
     return table
 
-st.header('Analýza dopravních nehod v ČR')
+# Filtrování konkrétní kategorie v jednom ze sloupců, k tomu napárování dalších vlastností a zobrazení poměru/výskytu těchto vlastonstí v grafu
+def category_conseq(table, filtered_value, category_col, consequences, graph_type):
+    cause_conseqences = table.groupby(['p1',category_col,consequences]).size().reset_index()
+    cause_conseqences = cause_conseqences.groupby([category_col,consequences])[consequences].size().reset_index(name='Pocet_vyskytu')
+    filtered_cause_conseqences = cause_conseqences[cause_conseqences[category_col] == filtered_value].copy()
+    filtered_cause_conseqences['total'] =  filtered_cause_conseqences['Pocet_vyskytu'].sum()
+    filtered_cause_conseqences['ratio'] = (filtered_cause_conseqences['Pocet_vyskytu']/filtered_cause_conseqences['total']*100).round(2)
+    filtered_cause_conseqences = filtered_cause_conseqences.drop(columns=['total'])
+    filtered_cause_conseqences = filtered_cause_conseqences.sort_values('ratio', ascending=False)
+    clean_label = consequences.replace('_', ' ')
+    if graph_type == 'bar':
+        filtered_cause_conseqences_graph = px.bar(filtered_cause_conseqences,
+                                                  x=consequences,
+                                                  y='Pocet_vyskytu',
+                                                  color = 'Pocet_vyskytu',
+                                                  color_continuous_scale='Reds',
+                                                  text='Pocet_vyskytu',
+                                                  title=f'{filtered_value} - {consequences}',
+                                                  labels={'Pocet_vyskytu': 'Počet výskytů', consequences:clean_label})
+    elif graph_type == 'pie': 
+        filtered_cause_conseqences_graph = px.pie(filtered_cause_conseqences,
+                                                  values='ratio',
+                                                  names=consequences,
+                                                  title=f'Poměr {consequences.replace("_", " ")} - {filtered_value}',
+                                                  color_discrete_sequence=px.colors.sequential.Reds_r)
+        filtered_cause_conseqences_graph.update_traces(marker=dict(line=dict(color='#000000', width=1)))
+    unify_graphs(filtered_cause_conseqences_graph)
+    return filtered_cause_conseqences_graph
+### Skraté prvky
 
 if 'active_dashboard' not in st.session_state:
     st.session_state.active_dashboard = 'None'
+
+
+### STREAMLIT ###
+
+st.header('Analýza dopravních nehod v ČR')
+
+
 
 but1, but2, but3, but4 =st.columns(4)
 
@@ -255,11 +355,93 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
     else:
         st.error("Nepodařilo se načíst/převést souřadnice z databáze.")
 
-
-
 elif st.session_state.active_dashboard == 'priciny':
-    st.subheader('Analýza nejběžnějších příčín')
+    df_but3 = execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
+                          p12, p13a, p13b, p13c, p29, p29a, p30a, p30b, p33c, p33g, p34, id_vozidla, p44, p45a
+                          FROM dopravni_nehody_cr.accidents_crash""")
+    df_but3 = translate(df_but3)
+    causes = sorted(df_but3['zavinění_nehody'].unique())
+    crash_types = sorted(df_but3['druh_nehody'].unique())
+    type_crash, determined_cause = st.columns(2)
+    with type_crash:
+        st.subheader('Typy nehod')
+        top_type_df = top_1_in_cat(df_but3, 'p1', 'druh_nehody')
+        if not top_type_df.empty:
+            nazev = top_type_df['druh_nehody'].iloc[0]
+            pocet = top_type_df['Pocet_vyskytu'].iloc[0]
+        st.metric(
+            label=f"Nejčastější typ nehody: {nazev}", 
+            value=f"{pocet} případů")
+        df_crash_types = ratio_in_category(df_but3, 'p1', 'druh_nehody')
+        crash_types_graph = px.bar(df_crash_types.tail(10),
+                                   x='druh_nehody',
+                                   y='Pocet_vyskytu',
+                                   color='Pocet_vyskytu',
+                                   color_continuous_scale='Reds',
+                                   text='Pocet_vyskytu',
+                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'druh_nehody': ''})
+        
+        crash_types_graph.update_layout(yaxis=dict(
+                                            type='linear',
+                                            range=[0, 80000],       
+                                            dtick=10000,            
+                                            title='Počet nehod')
+                                            )
+
+        unify_graphs(crash_types_graph)
+
+        st.divider()
+        st.subheader('Následky u konkrétních typů nehod')
+        selected_cause = st.selectbox("Vyberte typ nehody:", options=list(crash_types), key='crash_types')
+        if selected_cause == 'srážka s domácím zvířetem':
+            st.subheader('Srážky s domácím mazlíčkem')
+            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s domácím zvířetem'].reset_index(), 'srážka s domácím zvířetem', 'druh_nehody', 'charakter_nehody', 'pie')
+            st.divider()
+            st.subheader('Druhy domácích mazlíčků')
+            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s domácím zvířetem'].reset_index(), 'srážka s domácím zvířetem', 'druh_nehody', 'druh_zvěře/zvířete', 'bar')
+        elif selected_cause == 'srážka s lesní zvěří':
+            st.subheader('Srážky s divokou zvěří')
+            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s lesní zvěří'].reset_index(), 'srážka s lesní zvěří', 'druh_nehody', 'charakter_nehody', 'pie')
+            st.divider()
+            st.subheader('Druhy divoké zvěře')
+            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s lesní zvěří'].reset_index(), 'srážka s lesní zvěří', 'druh_nehody', 'druh_zvěře/zvířete', 'bar')
+        else:
+            category_conseq(df_but3, selected_cause, 'druh_nehody', 'charakter_nehody', 'pie')
+
+    with determined_cause:
+        st.subheader('Zavinění')
+        top_type_df = top_1_in_cat(df_but3, 'p1', 'zavinění_nehody')
+        if not top_type_df.empty:
+            nazev = top_type_df['zavinění_nehody'].iloc[0]
+            pocet = top_type_df['Pocet_vyskytu'].iloc[0]
+        st.metric(
+            label=f"Nejčastější zavinění: {nazev}", 
+            value=f"{pocet} případů")
+        df_crash_cause = ratio_in_category(df_but3, 'p1', 'zavinění_nehody')
+        crash_cause_graph = px.bar(df_crash_cause.tail(10),
+                                   x='zavinění_nehody',
+                                   y='Pocet_vyskytu',
+                                   color = 'Pocet_vyskytu',
+                                   color_continuous_scale='Reds',
+                                   text='Pocet_vyskytu',
+                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'zavinění_nehody': ''})
+        unify_graphs(crash_cause_graph)
+        st.divider()
+        st.subheader('Následky u různých viníků')
+        selected_cause = st.selectbox("Vyberte vyníka:", options=list(causes), key='causes_types')
+        if selected_cause == 'chodcem':
+            st.subheader("Následky nehod zaviněných chodci")
+            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'charakter_nehody', 'pie')
+            st.divider()
+            st.subheader("Chodci, kteří jsou součástí dopravních nehod jsou nejčastěji muži")
+            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'kategorie_chodce', 'bar')
+            st.divider()
+            st.subheader("Poměr chodců s reflexním vybavením")
+            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'reflexní_prvky_u_chodce', 'pie')
+        else:
+            category_conseq(df_but3, selected_cause, 'zavinění_nehody', 'charakter_nehody', 'pie')
+        
 
 else:
-    st.subheader('Analýza externích podmínek při dopravních nehodách')
+    st.subheader('Analýza okolností dopravních nehod')
 
