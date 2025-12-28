@@ -7,6 +7,7 @@ import folium
 from pyproj import Transformer
 from pprint import pprint
 import psycopg2
+import requests
 
 st.set_page_config(page_title="Analýza nehod", page_icon="📊",layout='wide')
 
@@ -180,7 +181,7 @@ if st.session_state.active_dashboard == 'None':
             Kvůli velikosti dat se věnuji pouze posledním třem rokům.""")
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, gap="medium")
     df_but1 = execute_sql("SELECT p1, accident_year, accident_month, p13a as úmrtí, p14 as hmotná_škoda FROM dopravni_nehody_cr.accidents_in_time")
     years = sorted(df_but1['accident_year'].unique())
     if df_but1 is not None:
@@ -362,7 +363,7 @@ elif st.session_state.active_dashboard == 'priciny':
     df_but3 = translate(df_but3)
     causes = sorted(df_but3['zavinění_nehody'].unique())
     crash_types = sorted(df_but3['druh_nehody'].unique())
-    type_crash, determined_cause = st.columns(2)
+    type_crash, determined_cause = st.columns(2, gap="large")
     with type_crash:
         st.subheader('Typy nehod')
         top_type_df = top_1_in_cat(df_but3, 'p1', 'druh_nehody')
@@ -441,7 +442,6 @@ elif st.session_state.active_dashboard == 'priciny':
         else:
             category_conseq(df_but3, selected_cause, 'zavinění_nehody', 'charakter_nehody', 'pie')
         
-
 else:
     st.subheader('Analýza okolností dopravních nehod')
 
