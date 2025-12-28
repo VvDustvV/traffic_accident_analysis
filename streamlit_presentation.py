@@ -38,7 +38,7 @@ def get_and_transform_data():
     return None
 
 # Poměry v seskupených kategoriích
-def ratio_in_categorii(data, groupbys, counted_cat_ratio):
+def ratio_in_category(data, groupbys, counted_cat_ratio):
     table_group = data.groupby(groupbys).size().reset_index(name='total')
     seskupení = data.groupby([groupbys, counted_cat_ratio])[counted_cat_ratio].size().reset_index(name='total_cat')
     table = pd.merge(seskupení, 
@@ -209,7 +209,6 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
                                 color_continuous_scale='Reds',
                                 text_auto=True)
         unify_graphs(col1_graph1)
-        col1_graph2 = df_but2.groupby(['k', 'p9']).size()
 
     with col2text:
         st.text(f"""Typy komunikací jsou vymezeny v zákoně č. 13/1997 Sb.
