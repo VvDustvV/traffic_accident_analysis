@@ -548,11 +548,10 @@ elif st.session_state.active_dashboard == 'priciny':
             st.subheader("Poměr chodců s reflexním vybavením")
             category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_reflective_elements', 'pie')
             st.text("Z této informace je zřejmé, že je absence reflexních prvků u chodců zapetených do dopravní nehody takřka pravidlem")
+
         elif selected_cause == 'Driver motor vehicle':
             st.subheader("Nejřastější chyby řičičů")
-            category_conseq(df_but3, 'Driver motor vehicle', 'responsible_party', 'main_cause', 'bar')
-
-
+            category_conseq(df_but3[df_but3['responsible_party']=='Driver motor vehicle'].reset_index(), 'Driver motor vehicle', 'responsible_party', 'main_cause', 'bar')
 
         else:
             category_conseq(df_but3, selected_cause, 'responsible_party', 'accident_characteristic', 'pie')
