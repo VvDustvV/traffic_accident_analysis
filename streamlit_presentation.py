@@ -113,14 +113,17 @@ def top_3_in_cat(table, id_column, category_column):
 def top_1_in_cat(table, id_column, category_column):
     return top_3_in_cat(table, id_column, category_column).head(1).reset_index()
 
-# Překladač sloupců a kategorií daných sloupců
+# Přeložený seznam jmen sloupců
 def get_table_column_name(column):
-    column_name = execute_sql(f"""SELECT descr FROM column_names
+    column_name = execute_sql(f"""SELECT descr FROM dopravni_nehody_cr.column_names
                               WHERE code = '{column}'""")
     return column_name.iloc[0, 0]
 
+# Přeložený seznam jmen sloupců a jejich kategorií
 def categories_translate(table, column):
-    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM data_description
+    if table[column].isnull().all():
+        return table
+    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM dopravni_nehody_cr.data_description
                                    WHERE column_code = '{column}'""")
     if cat_items is None or cat_items.empty:
         return table
@@ -135,12 +138,23 @@ def categories_translate(table, column):
     return df
 
 def translate(table):
-    varchars = table.select_dtypes(include=['object']).columns
+    to_translate = ['p5a',	'p6',	'p7',	'p8',	'p8a',	'p9',	'p10',
+                'p11',	'p11a',	'p12',	'p13',	'p15',	'p16',	'p17',
+                'p18',	'p19',	'p20',	'p21',	'p22',	'p23',	'p24',
+                'p27',	'p28',	'p29',	'p29a',	'p29b',	'p30',	'p30a',
+                'p30b',	'p31',	'p32',	'p33',	'p33c',	'p33d', 'p33e',
+                'p33f',	'p33g',	'p35',	'p36',	'p37',	'p39',	'p44',
+                'p45a',	'p45d',	'p45f',	'p47',	'p48a',	'p49',	'p50a',
+                'p50b',	'p51',	'p52',	'p53',	'p55a',	'p57',	'p58',
+                'p59a',	'p59b',	'p59c',	'p59e',	'p59f',	'p59g']	
 
-    for column in varchars:
-        table = categories_translate(table, column)
+
+    for column in to_translate:
+        if column in table.column:
+            table = categories_translate(table, column)
     return table
 
+    
 # Filtrování konkrétní kategorie v jednom ze sloupců, k tomu napárování dalších vlastností a zobrazení poměru/výskytu těchto vlastonstí v grafu
 def category_conseq(table, filtered_value, category_col, consequences, graph_type):
     cause_conseqences = table.groupby(['p1',category_col,consequences]).size().reset_index()
@@ -441,10 +455,9 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
         st.error("Nepodařilo se načíst/převést souřadnice z databáze.")
 
 elif st.session_state.active_dashboard == 'priciny':
-    df_but3 = execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
+    df_but3 = translate(execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
                           p12, p13a, p13b, p13c, p29, p29a, p30a, p30b, p33c, p33g, p34, id_vozidla, p44, p45a
-                          FROM dopravni_nehody_cr.accidents_crash""")
-    df_but3 = translate(df_but3)
+                          FROM dopravni_nehody_cr.accidents_crash"""))
     causes = sorted(df_but3['zavinění_nehody'].unique())
     crash_types = sorted(df_but3['druh_nehody'].unique())
     type_crash, determined_cause = st.columns(2, gap="large")
