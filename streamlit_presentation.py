@@ -51,8 +51,8 @@ st.markdown(f"""
 # Import z SQL databáze (postgre)
 @st.cache_data
 def execute_sql(sql_query: str) -> list: 
+    df_name = pd.DataFrame() 
     connection = None
-    data = None
     try:
         db_info = st.secrets["postgres"]
         
@@ -69,9 +69,11 @@ def execute_sql(sql_query: str) -> list:
         cursor.execute(sql_query)
         data = cursor.fetchall()
         colnames = [cell[0] for cell in cursor.description]
+        
         df_name = pd.DataFrame(data, columns=colnames)
-    except Exception as E:
-        print('ERROR')
+        cursor.close()
+    except Exception as e:
+        st.error(f"Chyba databáze: {e}")
     
     finally:
         if connection is not None:
