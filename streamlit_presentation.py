@@ -54,11 +54,16 @@ def execute_sql(sql_query: str) -> list:
     connection = None
     data = None
     try:
-        connection =  psycopg2.connect(
-            host='localhost',
-            user='postgres',
-            password='kjm57',
-            dbname='postgres')
+        db_info = st.secrets["postgres"]
+        
+        connection = psycopg2.connect(
+            host=db_info["host"],
+            user=db_info["user"],
+            password=db_info["password"],
+            dbname=db_info["dbname"],
+            port=db_info["port"],
+            sslmode='require' 
+        )
     
         cursor = connection.cursor()
         cursor.execute(sql_query)
