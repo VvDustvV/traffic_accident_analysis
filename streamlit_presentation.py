@@ -389,7 +389,7 @@ elif st.session_state.active_dashboard == 'obecný_přehled':
 
 elif st.session_state.active_dashboard == 'kriticke_lokality':
     st.subheader('Analýza kritických lokalit')    
-    df_but2 = execute_sql("""SELECT gt.p1, lat, lon, g.k, p4a, p5a, p6, p9 FROM gps_wgs84 as gt
+    df_but2 = execute_sql("""SELECT gt.p1, lat, lon, g.k, p5a, p6, p9 FROM gps_wgs84 as gt
                           LEFT JOIN gps as g ON g.p1 = gt.p1
                           LEFT JOIN nehody as n ON n.p1 =gt.p1""")
     road_types = sorted(df_but2['k'].unique())
