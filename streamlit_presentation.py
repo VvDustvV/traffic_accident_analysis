@@ -91,22 +91,6 @@ def unify_graphs(graph):
                         font_color="brown")  
     return st.plotly_chart(graph, use_container_width=True)
 
-# transformace dat z mapy ze sytému S-JTSK(5514) na systém WGS84(4326)
-transformer = Transformer.from_crs("EPSG:5514", "EPSG:4326", always_xy=True)
-@st.cache_data
-def get_and_transform_data():
-    query_gps = execute_sql("SELECT DISTINCT p1, d, e, k, p4a, p5a, p6, p9 FROM accidents_crash WHERE d < 0")
-    if query_gps is not None and not query_gps.empty:
-        val_e = query_gps['e'].values if (query_gps['e'].values < 0).all() else query_gps['e'].values * -1
-        val_d = query_gps['d'].values if (query_gps['d'].values < 0).all() else query_gps['d'].values * -1
-
-        lon, lat = transformer.transform(val_e, val_d)
-
-        query_gps['lat'] = lat
-        query_gps['lon'] = lon
-        
-        return query_gps[['p1', 'lat', 'lon', 'k', 'p4a', 'p6', 'p5a', 'p9']]
-    return None
 
 # Poměry v seskupených kategoriích
 def ratio_in_category(data, id_column, counted_cat_ratio):
@@ -459,7 +443,7 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
 elif st.session_state.active_dashboard == 'priciny':
     df_but3 = execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
                           p12, p13a, p13b, p13c, p29, p29a, p30a, p30b, p33c, p33g, p34, id_vozidla, p44, p45a
-                          FROM accidents_crash""")
+                          FROM dopravni_nehody_cr.accidents_crash""")
     df_but3 = translate(df_but3)
     causes = sorted(df_but3['zavinění_nehody'].unique())
     crash_types = sorted(df_but3['druh_nehody'].unique())
