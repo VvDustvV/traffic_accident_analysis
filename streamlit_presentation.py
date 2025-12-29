@@ -389,9 +389,10 @@ elif st.session_state.active_dashboard == 'obecný_přehled':
 
 elif st.session_state.active_dashboard == 'kriticke_lokality':
     st.subheader('Analýza kritických lokalit')    
-    df_but2 = execute_sql("""SELECT gt.p1, gt.lat, gt.lon, g.k, n.p4a, n.p5a, n.p6, n.p9 FROM gps_wgs84 as gt
-                          LEFT JOIN gps as g ON g.p1 = gt.p1
-                          LEFT JOIN nehody as n ON n.p1 =gt.p1""")
+    df_but2 = execute_sql("""SELECT gt.p1, gt.lat, gt.lon, g.k, n.p4a, n.p5a, n.p6, n.p9 
+                             FROM dopravni_nehody_cr.gps_wgs84 as gt
+                             LEFT JOIN dopravni_nehody_cr.gps as g ON g.p1 = gt.p1
+                             LEFT JOIN dopravni_nehody_cr.nehody as n ON n.p1 = gt.p1""")
     road_types = sorted(df_but2['k'].unique())
     biggest_cat_val = df_but2.groupby('k')['p1'].nunique().max()
     col1graph, col2text = st.columns(2)
