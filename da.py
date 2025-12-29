@@ -4,6 +4,8 @@ import pandas as pd
 from pyproj import Transformer
 from sqlalchemy import create_engine
 
+# Příprava pro vytvoření reqestů na WEATHER API 
+
 def execute_sql(sql_query: str): 
     connection = None
     df_name = pd.DataFrame()
@@ -31,9 +33,10 @@ transformer = Transformer.from_crs("EPSG:5514", "EPSG:4326", always_xy=True)
 
 def get_transform_and_save():
     query_str = """
-        SELECT DISTINCT p1, d, e 
-        FROM dopravni_nehody_cr.gps g
-        WHERE d < 0
+        SELECT DISTINCT g.p1, n.p2a, n.p2b, n.p4b, g.d, g.e 
+        FROM dopravni_nehody_cr.gps as g
+        LEFT JOIN dopravni_nehody_cr.nehody as n ON n.p1 = g.p1
+        WHERE g.d < 0
     """
     
     query_gps = execute_sql(query_str)
@@ -47,7 +50,7 @@ def get_transform_and_save():
         query_gps['lat'] = lat
         query_gps['lon'] = lon
         
-        output_df = query_gps[['p1', 'lat', 'lon']]
+        output_df = query_gps[['p1', 'p2a', 'p2b', 'p4b', 'lat', 'lon']]
 
         try:
             output_df.to_sql(
@@ -66,4 +69,3 @@ def get_transform_and_save():
     return None
 
 
-get_transform_and_save()

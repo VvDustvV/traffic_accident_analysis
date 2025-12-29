@@ -7,12 +7,47 @@ import folium
 from pyproj import Transformer
 from pprint import pprint
 import psycopg2
-import requests
-
-st.set_page_config(page_title="Analýza nehod", page_icon="📊",layout='wide')
-
 
 # funkce
+
+st.set_page_config(
+        page_title="Analýza dopravních nehod v ČR",
+        layout="wide",
+        page_icon="🚗"
+    )
+
+st.markdown(f"""
+    <style>
+    .stApp {{
+        background-color: #041E2B;
+    }}
+    html, body, [class*="st-"] {{
+        color: #E0D1D4 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }}
+    div.stButton > button {{
+        background-color: #353743;
+        color: #E0D1D4;            
+        border-radius: 5px;
+        border: 1px solid #E0D1D4;
+        transition: all 0.3s;
+    }}
+    div.stButton > button:hover {{
+        background-color: #43353E;
+        color: #E0D1D4;
+        border: 1px solid #3D2B1F;
+    }}
+    div[data-baseweb="select"] > div, div[data-baseweb="input"] > div {{
+        background-color: #353743 !important;
+        color: #E0D1D4 !important;
+        border: 1px solid #E0D1D4 !important;
+    }}
+    div[data-baseweb="popover"] {{
+        background-color: ##550000 !important;
+    }}
+    </style>""", 
+    unsafe_allow_html=True)
+    
 
 # Import z SQL databáze (postgre)
 @st.cache_data
@@ -154,7 +189,7 @@ st.header('Analýza dopravních nehod v ČR')
 
 
 
-but1, but2, but3, but4 =st.columns(4)
+but1, but2, but3 =st.columns(3)
 
 with but1:
     if st.button("Obecný přehled", use_container_width=True):
@@ -168,17 +203,66 @@ with but3:
     if st.button("Příčiny", use_container_width=True):
         st.session_state.active_dashboard = "priciny"
 
-with but4:
-    if st.button("Okolnosti", use_container_width=True):
-        st.session_state.active_dashboard = 'okolnosti'
-
 st.divider()
 
 if st.session_state.active_dashboard == 'None':
-    st.text("""Vítejte. 
+    current_layout = "centered" if st.session_state.active_dashboard == 'None' else "wide"
+
+    st.set_page_config(
+        page_title="O projektu",
+        layout=current_layout,
+        page_icon="⚙️"
+    )
+    
+
+    st.header('Vítejte')
+    st.subheader("""
             Pokud vás zajímají informace o dopravních nehodách v ČR, jste tu správně.
             V této aplikaci se věnuji vizualizaci dat: https://policie.gov.cz/clanek/statistika-nehodovosti.aspx
-            Kvůli velikosti dat se věnuji pouze posledním třem rokům.""")
+            Kvůli velikosti dat se věnuji pouze posledním třem rokům.
+            """)
+    st.subheader("Postup:")
+    st.text("""
+    1. Stažení dat z policie.gov z let 2023, 2024, 2025 (bez prosince)
+            """)
+    st.info('❗V Lednu 2026 je třeba doplnit prosincová data pro úplnost')
+    st.text("""
+    
+    2. Orientace v dokumentaci a hledání vztahů mezi tabulkami, čištění dat, explorativní analýza v jupiter notebooku. 
+            
+    3. Vytvoření SQL databáze (PostgreSQL) s daty o nehodách
+            
+    4. Vytvoření VIEWS, které mi pomohou při vizualizaci zajímavých dat.
+    
+    6. Nalezení otázek: 
+            Jaký je trend četnosti dopravních nehod za poslední tři roky?✅
+            V jakém měsící je průměrně nejvíce nehod?✅
+            Kolik životů vyhaslo na našich silnicích v posledních třech letech, jaké jsou meziroční rozdíly?✅
+            Jaký je nejkrizovější měsíc co se průměrného počtu nehod týče?✅
+            Co je nejčastější příčinnou dopravní nehody? ✅
+            V jak velkém podílu dopravních nehod je v krvi viníka přítomen alkohol/droga?⚙️
+            Jaký podíl chodců, kteří se stali účastníky dopravní nehody byl opatřen reflexními prvky?✅
+            Jaké je nejčastější pohlaví chodce, který se stal účastníkem dopravní nehody?✅
+            Jaké je nejčastější pohlaví řidiče, který se stal účastníkem dopravní nehody?⚙️ 
+            Jaké jsou nejčastější okolnosti dopravní nehody? (Počasí/Stav vozovky)⚙️
+            Na kterém typu komunikací se nehody stávají nejčastěji?✅ 
+            Jaké dny v týdnu jsou na silnici nejryzikovější?⚙️
+            Co můžeme považovat za kritickou hodinu v silničním provozu?⚙️     
+        
+    
+    5. Rozvržení streamlitu
+            - Rozdělení dashboardů na tři strany pomocí proklikávání přes tlačítka
+            - Nalezení knihovny pro zobrazení mapy s intenzitou dopravních nehod
+    
+    6. Převodník souřadnic pro účely zobrazení mapy
+    
+    7. Funkce pro přiřazení hodnot k zakódovaným sloupcům a jejich kategoriím
+    
+    8. Vizualizace
+            """)
+    st.info('❗Některé body v postupu probíhaly zároveň.')
+    st.divider()
+    st.info('❌ Mezi některé problémy se kterými jsem se setkala patří neúplnost dokumentace, převod souřadnic, nejasnost pojmenování')
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
     col1, col2, col3 = st.columns(3, gap="medium")
@@ -312,11 +396,15 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
         unify_graphs(col1_graph1)
 
     with col2text:
-        st.text(f"""Typy komunikací jsou vymezeny v zákoně č. 13/1997 Sb.
+        st.text(f"""
+                Typy komunikací jsou vymezeny v zákoně č. 13/1997 Sb.
+
                 Nejvice nehod se odehrává na Místních komunikacích: {biggest_cat_val}.
+
                 Níže se můžete podívat na mapu ČR na níž je vykreslena hustota dopravních nehod.
                 Dle očekávání se vetší koncentrace nehod objevuje kolem velkých měst a významných dopravních uzlů.
-                Výberem komunikace ve filtru můžete intenzitu nehod sledovat na konrétním typu komunikace.""")
+                Výberem komunikace ve filtru můžete intenzitu nehod sledovat na konrétním typu komunikace.
+                """)
     st.divider()
     selected_road = st.selectbox("Vyberte typ komunikace:", options=['Všechny'] + list(road_types), key='road_type_filter')
     if df_but2 is not None and not df_but2.empty:
@@ -434,14 +522,13 @@ elif st.session_state.active_dashboard == 'priciny':
             st.subheader("Následky nehod zaviněných chodci")
             category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'charakter_nehody', 'pie')
             st.divider()
-            st.subheader("Chodci, kteří jsou součástí dopravních nehod jsou nejčastěji muži")
+            st.subheader("Pohlaví chodců zapletených do dopravních nehod")
             category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'kategorie_chodce', 'bar')
+            st.text("Nejvíce s auty na silnicích střetávají muži. U žen je to výrazně nižší číslo.")
             st.divider()
             st.subheader("Poměr chodců s reflexním vybavením")
             category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'reflexní_prvky_u_chodce', 'pie')
+            st.text("Z této informace je zřejmé, že je absence reflexních prvků u chodců zapetených do dopravní nehody takřka pravidlem")
         else:
             category_conseq(df_but3, selected_cause, 'zavinění_nehody', 'charakter_nehody', 'pie')
         
-else:
-    st.subheader('Analýza okolností dopravních nehod')
-
