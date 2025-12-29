@@ -5,7 +5,6 @@ from streamlit_folium import st_folium
 from folium.plugins import HeatMap
 import folium
 from pyproj import Transformer
-from pprint import pprint
 import psycopg2
 
 # funkce
