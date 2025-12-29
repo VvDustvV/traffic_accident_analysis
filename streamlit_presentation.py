@@ -235,17 +235,18 @@ if st.session_state.active_dashboard == 'None':
     4. Vytvoření VIEWS (pohledů), které pomohou při vizualizaci zajímavých dat.
 
     5. Definování analytických otázek: 
-            Jaký je trend četnosti dopravních nehod za poslední tři roky? ✅
-            V jakém měsíci je průměrně nejvíce nehod? ✅
-            Kolik životů vyhaslo na našich silnicích v posledních třech letech a jaké jsou meziroční rozdíly? ✅
-            Jaký je nejkrizovější měsíc, co se průměrného počtu nehod týče? ✅
-            Co je nejčastější příčinou dopravní nehody? ✅
+            Jaký je trend četnosti dopravních nehod za poslední tři roky?👌
+            V jakém měsíci je průměrně nejvíce nehod?👌
+            Kolik životů vyhaslo na našich silnicích v posledních třech letech👌
+            Jaký je trend úmrtnosti na našich silnicích?👌
+            Jaký je nejkrizovější měsíc, co se průměrného počtu nehod týče?👌
+            Co je nejčastější příčinou dopravní nehody?👌
             V jak velkém podílu dopravních nehod je v krvi viníka přítomen alkohol nebo drogy? ⚙️
-            Jaký podíl chodců, kteří se stali účastníky nehody, byl vybaven reflexními prvky? ✅
-            Jaké je nejčastější pohlaví chodce, který se stal účastníkem dopravní nehody? ✅
+            Jaký podíl chodců, kteří se stali účastníky nehody, byl vybaven reflexními prvky?👌
+            Jaké je nejčastější pohlaví chodce, který se stal účastníkem dopravní nehody?👌
             Jaké je nejčastější pohlaví řidiče, který se stal účastníkem dopravní nehody? ⚙️ 
             Jaké jsou nejčastější okolnosti dopravní nehody (počasí/stav vozovky)? ⚙️
-            Na kterém typu komunikace se nehody stávají nejčastěji? ✅ 
+            Na jakém typu komunikace se nehody stávají nejčastěji?👌
             Jaké dny v týdnu jsou na silnicích nejrizikovější? ⚙️
             Co lze považovat za kritickou hodinu v silničním provozu? ⚙️      
     
