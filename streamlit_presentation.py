@@ -268,8 +268,10 @@ if st.session_state.active_dashboard == 'None':
     """)
     st.info('❗Body postupu nejsou seřazeny 100% chronologicky. Mnoho bodu jsem zpracovávala současně, nebo jsem mezi nimi přecházela.')
     st.divider()
-    st.info('❌ Mezi některé problémy se kterými jsem se setkala patří neúplnost dokumentace, převod souřadnic, nejasnost pojmenování')
-    st.info('❗Třeba dodělat vizualizace pro zbytek otázek a připojit data o počasí abych se mohla podívat zda je korelace mezi výší teploty/vlhkosti a počtem dopravních nehod.')
+    st.info('❌ Mezi některé problémy se kterými jsem se setkala patří neúplnost dokumentace, převod souřadnic, nejasnost pojmenování.' \
+    'Při přetažení databáze na could se mi špatně nahrála diakritika. Z časových důvodů musím nechat některé názva v angličtině.')
+    st.info('❗Třeba dodělat vizualizace pro zbytek otázek a připojit data o počasí abych se mohla podívat zda je korelace mezi výší teploty/vlhkosti a počtem dopravních nehod.' \
+    'OPRAVA NÁZVŮ!!!')
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
     col1, col2, col3 = st.columns(3, gap="medium")
@@ -458,26 +460,26 @@ elif st.session_state.active_dashboard == 'priciny':
     df_but3 = translate(execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
                           p12, p13a, p13b, p13c, p29, p29a, p30a, p30b, p33c, p33g, p34, id_vozidla, p44, p45a
                           FROM dopravni_nehody_cr.accidents_crash"""))
-    causes = sorted(df_but3['zavinění_nehody'].unique())
-    crash_types = sorted(df_but3['druh_nehody'].unique())
+    causes = sorted(df_but3['responsible_party'].unique())
+    crash_types = sorted(df_but3['accident_type'].unique())
     type_crash, determined_cause = st.columns(2, gap="large")
     with type_crash:
         st.subheader('Typy nehod')
-        top_type_df = top_1_in_cat(df_but3, 'p1', 'druh_nehody')
+        top_type_df = top_1_in_cat(df_but3, 'p1', 'accident_type')
         if not top_type_df.empty:
-            nazev = top_type_df['druh_nehody'].iloc[0]
+            nazev = top_type_df['accident_type'].iloc[0]
             pocet = top_type_df['Pocet_vyskytu'].iloc[0]
         st.metric(
             label=f"Nejčastější typ nehody: {nazev}", 
             value=f"{pocet} případů")
-        df_crash_types = ratio_in_category(df_but3, 'p1', 'druh_nehody')
+        df_crash_types = ratio_in_category(df_but3, 'p1', 'accident_type')
         crash_types_graph = px.bar(df_crash_types.tail(10),
-                                   x='druh_nehody',
+                                   x='accident_type',
                                    y='Pocet_vyskytu',
                                    color='Pocet_vyskytu',
                                    color_continuous_scale='Reds',
                                    text='Pocet_vyskytu',
-                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'druh_nehody': ''})
+                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'accident_type': ''})
         
         crash_types_graph.update_layout(yaxis=dict(
                                             type='linear',
@@ -491,33 +493,33 @@ elif st.session_state.active_dashboard == 'priciny':
         st.divider()
         st.subheader('Následky u konkrétních typů nehod')
         selected_cause = st.selectbox("Vyberte typ nehody:", options=list(crash_types), key='crash_types')
-        if selected_cause == 'srážka s domácím zvířetem':
+        if selected_cause == 'Collision with a pet':
             st.subheader('Srážky s domácím mazlíčkem')
-            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s domácím zvířetem'].reset_index(), 'srážka s domácím zvířetem', 'druh_nehody', 'charakter_nehody', 'pie')
+            category_conseq(df_but3[df_but3['accident_type']=='Collision with a pet'].reset_index(), 'Collision with a pet', 'accident_type', 'accident_characteristic', 'pie')
             st.divider()
             st.subheader('Druhy domácích mazlíčků')
-            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s domácím zvířetem'].reset_index(), 'srážka s domácím zvířetem', 'druh_nehody', 'druh_zvěře/zvířete', 'bar')
-        elif selected_cause == 'srážka s lesní zvěří':
+            category_conseq(df_but3[df_but3['accident_type']=='Collision with a pet'].reset_index(), 'Collision with a pet', 'accident_type', 'animal_type', 'bar')
+        elif selected_cause == 'Collision with forest animals':
             st.subheader('Srážky s divokou zvěří')
-            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s lesní zvěří'].reset_index(), 'srážka s lesní zvěří', 'druh_nehody', 'charakter_nehody', 'pie')
+            category_conseq(df_but3[df_but3['accident_type']=='Collision with forest animals'].reset_index(), 'Collision with forest animals', 'accident_type', 'accident_characteristic', 'pie')
             st.divider()
             st.subheader('Druhy divoké zvěře')
-            category_conseq(df_but3[df_but3['druh_nehody']=='srážka s lesní zvěří'].reset_index(), 'srážka s lesní zvěří', 'druh_nehody', 'druh_zvěře/zvířete', 'bar')
+            category_conseq(df_but3[df_but3['accident_type']=='Collision with forest animals'].reset_index(), 'Collision with forest animals', 'accident_type', 'animal_type', 'bar')
         else:
-            category_conseq(df_but3, selected_cause, 'druh_nehody', 'charakter_nehody', 'pie')
+            category_conseq(df_but3, selected_cause, 'accident_type', 'accident_characteristic', 'pie')
 
     with determined_cause:
         st.subheader('Zavinění')
-        top_type_df = top_1_in_cat(df_but3, 'p1', 'zavinění_nehody')
+        top_type_df = top_1_in_cat(df_but3, 'p1', 'responsible_party')
         if not top_type_df.empty:
-            nazev = top_type_df['zavinění_nehody'].iloc[0]
+            nazev = top_type_df['responsible_party'].iloc[0]
             pocet = top_type_df['Pocet_vyskytu'].iloc[0]
         st.metric(
             label=f"Nejčastější zavinění: {nazev}", 
             value=f"{pocet} případů")
-        df_crash_cause = ratio_in_category(df_but3, 'p1', 'zavinění_nehody')
+        df_crash_cause = ratio_in_category(df_but3, 'p1', 'responsible_party')
         crash_cause_graph = px.bar(df_crash_cause.tail(10),
-                                   x='zavinění_nehody',
+                                   x='responsible_party',
                                    y='Pocet_vyskytu',
                                    color = 'Pocet_vyskytu',
                                    color_continuous_scale='Reds',
@@ -527,17 +529,17 @@ elif st.session_state.active_dashboard == 'priciny':
         st.divider()
         st.subheader('Následky u různých viníků')
         selected_cause = st.selectbox("Vyberte vyníka:", options=list(causes), key='causes_types')
-        if selected_cause == 'chodcem':
+        if selected_cause == 'Pedestrian':
             st.subheader("Následky nehod zaviněných chodci")
-            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'charakter_nehody', 'pie')
+            category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'accident_characteristic', 'pie')
             st.divider()
             st.subheader("Pohlaví chodců zapletených do dopravních nehod")
-            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'kategorie_chodce', 'bar')
+            category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_category', 'bar')
             st.text("Nejvíce s auty na silnicích střetávají muži. U žen je to výrazně nižší číslo.")
             st.divider()
             st.subheader("Poměr chodců s reflexním vybavením")
-            category_conseq(df_but3, 'chodcem', 'zavinění_nehody', 'reflexní_prvky_u_chodce', 'pie')
+            category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_reflective_elements', 'pie')
             st.text("Z této informace je zřejmé, že je absence reflexních prvků u chodců zapetených do dopravní nehody takřka pravidlem")
         else:
-            category_conseq(df_but3, selected_cause, 'zavinění_nehody', 'charakter_nehody', 'pie')
+            category_conseq(df_but3, selected_cause, 'responsible_party', 'accident_characteristic', 'pie')
         
