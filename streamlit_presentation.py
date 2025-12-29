@@ -166,8 +166,8 @@ def category_conseq(table, filtered_value, category_col, consequences, graph_typ
     filtered_cause_conseqences = filtered_cause_conseqences.sort_values('ratio', ascending=False)
     clean_label = consequences.replace('_', ' ')
     if graph_type == 'bar':
-        filtered_cause_conseqences = filtered_cause_conseqences.head(10)
-        filtered_cause_conseqences_graph = px.bar(filtered_cause_conseqences,
+        filtered_cause = filtered_cause_conseqences.head(10)
+        filtered_cause_conseqences_graph = px.bar(filtered_cause,
                                                   x=consequences,
                                                   y='Pocet_vyskytu',
                                                   color = 'Pocet_vyskytu',
@@ -553,7 +553,8 @@ elif st.session_state.active_dashboard == 'priciny':
         elif selected_cause == 'Driver motor vehicle':
             st.subheader('Poměr následků')
             category_conseq(df_but3[df_but3['responsible_party']=='Driver motor vehicle'].reset_index(), 'Driver motor vehicle', 'responsible_party', 'accident_characteristic', 'pie')
-            st.subheader("Nejřastější chyby řičičů")
+            st.divider()
+            st.subheader("Nejčastější chyby řičičů")
             category_conseq(df_but3[df_but3['responsible_party']=='Driver motor vehicle'].reset_index(), 'Driver motor vehicle', 'responsible_party', 'main_cause', 'bar')
 
         else:
