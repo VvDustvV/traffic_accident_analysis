@@ -266,7 +266,7 @@ if st.session_state.active_dashboard == 'None':
     
     8. Implementace funkcí pro dekódování číselných hodnot na srozumitelné kategorie.
     
-    9. Vizualizace výsledků a finalizace dashboardu.
+    9. Vizualizace výsledků a finalizace dashboardu - převedení databáze SQL na cloud a opravy kódu.
     """)
     st.info('❗Body postupu nejsou seřazeny 100% chronologicky. Mnoho bodu jsem zpracovávala současně, nebo jsem mezi nimi přecházela.')
     st.divider()
