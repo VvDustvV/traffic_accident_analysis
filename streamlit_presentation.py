@@ -115,7 +115,7 @@ def top_1_in_cat(table, id_column, category_column):
 
 # Přeložený seznam jmen sloupců
 def get_table_column_name(column):
-    column_name = execute_sql(f"""SELECT descr FROM dopravni_nehody_cr.column_names
+    column_name = execute_sql(f"""SELECT name_column_en FROM dopravni_nehody_cr.column_names
                               WHERE code = '{column}'""")
     return column_name.iloc[0, 0]
 
@@ -123,7 +123,7 @@ def get_table_column_name(column):
 def categories_translate(table, column):
     if table[column].isnull().all():
         return table
-    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM dopravni_nehody_cr.data_description
+    cat_items = execute_sql(f"""SELECT id_detail, en FROM dopravni_nehody_cr.data_description
                                    WHERE column_code = '{column}'""")
     if cat_items is None or cat_items.empty:
         return table
@@ -133,7 +133,7 @@ def categories_translate(table, column):
                   right_on='id_detail',
                   how='left')
     rename_column = get_table_column_name(column)
-    df = df.rename(columns={'description_detail_2': rename_column})
+    df = df.rename(columns={'en': rename_column})
     df = df.drop(columns=['id_detail', column])
     return df
 
