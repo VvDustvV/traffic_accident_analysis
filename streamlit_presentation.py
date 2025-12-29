@@ -173,16 +173,17 @@ def category_conseq(table, filtered_value, category_col, consequences, graph_typ
                                                   color_continuous_scale='Reds',
                                                   text='Pocet_vyskytu',
                                                   title=f'{filtered_value} - {consequences}',
-                                                  labels={'Pocet_vyskytu': 'Počet výskytů', consequences:clean_label})
+                                                  labels={'Pocet_vyskytu': 'Count', consequences:clean_label})
     elif graph_type == 'pie': 
         filtered_cause_conseqences_graph = px.pie(filtered_cause_conseqences,
                                                   values='ratio',
                                                   names=consequences,
-                                                  title=f'Poměr {consequences.replace("_", " ")} - {filtered_value}',
+                                                  title=f'Ratio {consequences.replace("_", " ")} - {filtered_value}',
                                                   color_discrete_sequence=px.colors.sequential.Reds_r)
         filtered_cause_conseqences_graph.update_traces(marker=dict(line=dict(color='#000000', width=1)))
     unify_graphs(filtered_cause_conseqences_graph)
     return filtered_cause_conseqences_graph
+
 ### Skraté prvky
 
 if 'active_dashboard' not in st.session_state:
@@ -526,20 +527,33 @@ elif st.session_state.active_dashboard == 'priciny':
                                    text='Pocet_vyskytu',
                                    labels={'Pocet_vyskytu': 'Počet výskytů', 'responsible_party': ''})
         unify_graphs(crash_cause_graph)
+
         st.divider()
+
         st.subheader('Následky u různých viníků')
         selected_cause = st.selectbox("Vyberte vyníka:", options=list(causes), key='causes_types')
         if selected_cause == 'Pedestrian':
             st.subheader("Následky nehod zaviněných chodci")
             category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'accident_characteristic', 'pie')
+
             st.divider()
+
             st.subheader("Pohlaví chodců zapletených do dopravních nehod")
             category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_category', 'bar')
-            st.text("Nejvíce s auty na silnicích střetávají muži. U žen je to výrazně nižší číslo.")
             st.divider()
+            st.text("Nejvíce s auty na silnicích střetávají muži. U žen je to výrazně nižší číslo.")
+
+            st.divider()
+
             st.subheader("Poměr chodců s reflexním vybavením")
             category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_reflective_elements', 'pie')
             st.text("Z této informace je zřejmé, že je absence reflexních prvků u chodců zapetených do dopravní nehody takřka pravidlem")
+        elif selected_cause == 'Driver motor vehicle':
+            st.subheader("Nejřastější chyby řičičů")
+            category_conseq(df_but3, 'Driver motor vehicle', 'responsible_party', 'main_cause', 'bar')
+
+
+
         else:
             category_conseq(df_but3, selected_cause, 'responsible_party', 'accident_characteristic', 'pie')
         
