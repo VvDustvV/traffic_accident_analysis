@@ -524,7 +524,7 @@ elif st.session_state.active_dashboard == 'priciny':
                                    color = 'Pocet_vyskytu',
                                    color_continuous_scale='Reds',
                                    text='Pocet_vyskytu',
-                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'zavinění_nehody': ''})
+                                   labels={'Pocet_vyskytu': 'Počet výskytů', 'responsible_party': ''})
         unify_graphs(crash_cause_graph)
         st.divider()
         st.subheader('Následky u různých viníků')
