@@ -50,36 +50,42 @@ st.markdown(f"""
 
 # Import z SQL databáze (postgre)
 @st.cache_data
-def execute_sql(sql_query: str) -> list: 
+def execute_sql(sql_query: str):
+    # 1. Definuj df_name hned na začátku jako prázdný DataFrame
     df_name = pd.DataFrame() 
     connection = None
+    
     try:
         db_info = st.secrets["postgres"]
-        
         connection = psycopg2.connect(
             host=db_info["host"],
             user=db_info["user"],
             password=db_info["password"],
             dbname=db_info["dbname"],
             port=db_info["port"],
-            sslmode='require' 
+            sslmode='require'
         )
-    
+        
         cursor = connection.cursor()
+        cursor.execute("SET search_path TO dopravni_nehody_cr, public")
         cursor.execute(sql_query)
         data = cursor.fetchall()
         colnames = [cell[0] for cell in cursor.description]
         
+        # Tady se df_name naplní daty
         df_name = pd.DataFrame(data, columns=colnames)
         cursor.close()
+
     except Exception as e:
+        # Tady uvidíš skutečnou chybu (např. špatné heslo) v aplikaci
         st.error(f"Chyba databáze: {e}")
     
     finally:
         if connection is not None:
             connection.close()
 
-        return df_name
+    # Teď už df_name vždy existuje (buď plná, nebo prázdná)
+    return df_name
 
 # unifikace stylu grafů
 def unify_graphs(graph):
