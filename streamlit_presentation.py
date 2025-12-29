@@ -99,7 +99,7 @@ def unify_graphs(graph):
 transformer = Transformer.from_crs("EPSG:5514", "EPSG:4326", always_xy=True)
 @st.cache_data
 def get_and_transform_data():
-    query_gps = execute_sql("SELECT DISTINCT p1, d, e, k, p4a, p5a, p6, p9 FROM dopravni_nehody_cr.accidents_crash WHERE d < 0")
+    query_gps = execute_sql("SELECT DISTINCT p1, d, e, k, p4a, p5a, p6, p9 FROM accidents_crash WHERE d < 0")
     if query_gps is not None and not query_gps.empty:
         val_e = query_gps['e'].values if (query_gps['e'].values < 0).all() else query_gps['e'].values * -1
         val_d = query_gps['d'].values if (query_gps['d'].values < 0).all() else query_gps['d'].values * -1
@@ -135,12 +135,12 @@ def top_1_in_cat(table, id_column, category_column):
 
 # Překladač sloupců a kategorií daných sloupců
 def get_table_column_name(column):
-    column_name = execute_sql(f"""SELECT descr FROM dopravni_nehody_cr.column_names
+    column_name = execute_sql(f"""SELECT descr FROM column_names
                               WHERE code = '{column}'""")
     return column_name.iloc[0, 0]
 
 def categories_translate(table, column):
-    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM dopravni_nehody_cr.data_description
+    cat_items = execute_sql(f"""SELECT id_detail, description_detail_2 FROM data_description
                                    WHERE column_code = '{column}'""")
     if cat_items is None or cat_items.empty:
         return table
@@ -279,7 +279,7 @@ if st.session_state.active_dashboard == 'None':
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
     col1, col2, col3 = st.columns(3, gap="medium")
-    df_but1 = execute_sql("SELECT p1, accident_year, accident_month, p13a as úmrtí, p14 as hmotná_škoda FROM dopravni_nehody_cr.accidents_in_time")
+    df_but1 = execute_sql("SELECT p1, accident_year, accident_month, p13a as úmrtí, p14 as hmotná_škoda FROM accidents_in_time")
     years = sorted(df_but1['accident_year'].unique())
     if df_but1 is not None:
         with col1:
@@ -460,7 +460,7 @@ elif st.session_state.active_dashboard == 'kriticke_lokality':
 elif st.session_state.active_dashboard == 'priciny':
     df_but3 = execute_sql("""SELECT p1, accident_year, accident_month, p5a, p6, p8, p8a, p9, p10, p11, p11a, 
                           p12, p13a, p13b, p13c, p29, p29a, p30a, p30b, p33c, p33g, p34, id_vozidla, p44, p45a
-                          FROM dopravni_nehody_cr.accidents_crash""")
+                          FROM accidents_crash""")
     df_but3 = translate(df_but3)
     causes = sorted(df_but3['zavinění_nehody'].unique())
     crash_types = sorted(df_but3['druh_nehody'].unique())
