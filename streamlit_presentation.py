@@ -51,7 +51,6 @@ st.markdown(f"""
 # Import z SQL databáze (postgre)
 @st.cache_data
 def execute_sql(sql_query: str):
-    # 1. Definuj df_name hned na začátku jako prázdný DataFrame
     df_name = pd.DataFrame() 
     connection = None
     
@@ -72,19 +71,16 @@ def execute_sql(sql_query: str):
         data = cursor.fetchall()
         colnames = [cell[0] for cell in cursor.description]
         
-        # Tady se df_name naplní daty
         df_name = pd.DataFrame(data, columns=colnames)
         cursor.close()
 
     except Exception as e:
-        # Tady uvidíš skutečnou chybu (např. špatné heslo) v aplikaci
         st.error(f"Chyba databáze: {e}")
     
     finally:
         if connection is not None:
             connection.close()
 
-    # Teď už df_name vždy existuje (buď plná, nebo prázdná)
     return df_name
 
 # unifikace stylu grafů
@@ -393,7 +389,9 @@ elif st.session_state.active_dashboard == 'obecný_přehled':
 
 elif st.session_state.active_dashboard == 'kriticke_lokality':
     st.subheader('Analýza kritických lokalit')    
-    df_but2 = get_and_transform_data()
+    df_but2 = execute_sql("""SELECT gt.p1, lat, lon, g.k, p4a, p5a, p6, p9 FROM gps_wgs84 as gt
+                          LEFT JOIN gps as g ON g.p1 = gt.p1
+                          LEFT JOIN nehody as n ON n.p1 =gt.p1""")
     road_types = sorted(df_but2['k'].unique())
     biggest_cat_val = df_but2.groupby('k')['p1'].nunique().max()
     col1graph, col2text = st.columns(2)
