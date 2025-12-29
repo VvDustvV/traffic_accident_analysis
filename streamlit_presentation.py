@@ -223,46 +223,46 @@ if st.session_state.active_dashboard == 'None':
             """)
     st.subheader("Postup:")
     st.text("""
-    1. Stažení dat z policie.gov z let 2023, 2024, 2025 (bez prosince)
+    1. Stažení dat z webu policie.cz z let 2023, 2024, 2025 (bez prosince) a jejich převod na formát xlsx kvůli snazšímu nahrání do databáze. 
             """)
-    st.info('❗V Lednu 2026 je třeba doplnit prosincová data pro úplnost')
+    st.info('❗ V lednu 2026 je třeba doplnit prosincová data pro úplnost.')
+
     st.text("""
-    
-    2. Orientace v dokumentaci a hledání vztahů mezi tabulkami, čištění dat, explorativní analýza v jupiter notebooku. 
+    2. Orientace v dokumentaci, hledání vztahů mezi tabulkami, čištění dat a explorativní analýza v Jupyter notebooku. 
             
-    3. Vytvoření SQL databáze (PostgreSQL) s daty o nehodách
+    3. Vytvoření SQL databáze (PostgreSQL) s daty o nehodách.
             
-    4. Vytvoření VIEWS, které mi pomohou při vizualizaci zajímavých dat.
+    4. Vytvoření VIEWS (pohledů), které pomohou při vizualizaci zajímavých dat.
+
+    5. Definování analytických otázek: 
+            Jaký je trend četnosti dopravních nehod za poslední tři roky? ✅
+            V jakém měsíci je průměrně nejvíce nehod? ✅
+            Kolik životů vyhaslo na našich silnicích v posledních třech letech a jaké jsou meziroční rozdíly? ✅
+            Jaký je nejkrizovější měsíc, co se průměrného počtu nehod týče? ✅
+            Co je nejčastější příčinou dopravní nehody? ✅
+            V jak velkém podílu dopravních nehod je v krvi viníka přítomen alkohol nebo drogy? ⚙️
+            Jaký podíl chodců, kteří se stali účastníky nehody, byl vybaven reflexními prvky? ✅
+            Jaké je nejčastější pohlaví chodce, který se stal účastníkem dopravní nehody? ✅
+            Jaké je nejčastější pohlaví řidiče, který se stal účastníkem dopravní nehody? ⚙️ 
+            Jaké jsou nejčastější okolnosti dopravní nehody (počasí/stav vozovky)? ⚙️
+            Na kterém typu komunikace se nehody stávají nejčastěji? ✅ 
+            Jaké dny v týdnu jsou na silnicích nejrizikovější? ⚙️
+            Co lze považovat za kritickou hodinu v silničním provozu? ⚙️      
     
-    6. Nalezení otázek: 
-            Jaký je trend četnosti dopravních nehod za poslední tři roky?✅
-            V jakém měsící je průměrně nejvíce nehod?✅
-            Kolik životů vyhaslo na našich silnicích v posledních třech letech, jaké jsou meziroční rozdíly?✅
-            Jaký je nejkrizovější měsíc co se průměrného počtu nehod týče?✅
-            Co je nejčastější příčinnou dopravní nehody? ✅
-            V jak velkém podílu dopravních nehod je v krvi viníka přítomen alkohol/droga?⚙️
-            Jaký podíl chodců, kteří se stali účastníky dopravní nehody byl opatřen reflexními prvky?✅
-            Jaké je nejčastější pohlaví chodce, který se stal účastníkem dopravní nehody?✅
-            Jaké je nejčastější pohlaví řidiče, který se stal účastníkem dopravní nehody?⚙️ 
-            Jaké jsou nejčastější okolnosti dopravní nehody? (Počasí/Stav vozovky)⚙️
-            Na kterém typu komunikací se nehody stávají nejčastěji?✅ 
-            Jaké dny v týdnu jsou na silnici nejryzikovější?⚙️
-            Co můžeme považovat za kritickou hodinu v silničním provozu?⚙️     
-        
+    6. Rozvržení Streamlitu:
+            - Rozdělení dashboardů na tři sekce pomocí navigace přes tlačítka.
+            - Výběr knihovny pro zobrazení heatmapy intenzity dopravních nehod.
     
-    5. Rozvržení streamlitu
-            - Rozdělení dashboardů na tři strany pomocí proklikávání přes tlačítka
-            - Nalezení knihovny pro zobrazení mapy s intenzitou dopravních nehod
+    7. Převodník souřadnic (S-JTSK na WGS84) pro účely zobrazení mapy.
     
-    6. Převodník souřadnic pro účely zobrazení mapy
+    8. Implementace funkcí pro dekódování číselných hodnot na srozumitelné kategorie.
     
-    7. Funkce pro přiřazení hodnot k zakódovaným sloupcům a jejich kategoriím
-    
-    8. Vizualizace
-            """)
-    st.info('❗Některé body v postupu probíhaly zároveň.')
+    9. Vizualizace výsledků a finalizace dashboardu.
+    """)
+    st.info('❗Body postupu nejsou seřazeny 100% chronologicky. Mnoho bodu jsem zpracovávala současně, nebo jsem mezi nimi přecházela.')
     st.divider()
     st.info('❌ Mezi některé problémy se kterými jsem se setkala patří neúplnost dokumentace, převod souřadnic, nejasnost pojmenování')
+    st.info('❗Třeba dodělat vizualizace pro zbytek otázek a připojit data o počasí abych se mohla podívat zda je korelace mezi výší teploty/vlhkosti a počtem dopravních nehod.')
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
     col1, col2, col3 = st.columns(3, gap="medium")
