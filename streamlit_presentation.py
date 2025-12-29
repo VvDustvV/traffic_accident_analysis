@@ -540,14 +540,14 @@ elif st.session_state.active_dashboard == 'priciny':
             st.divider()
 
             st.subheader("Pohlaví chodců zapletených do dopravních nehod")
-            category_conseq(df_but3[df_but3['responsible_party']=='Pedestrian'].reset_index(), 'Pedestrian', 'responsible_party', 'pedestrian_category', 'bar')
+            category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_category', 'bar')
             st.divider()
             st.text("Nejvíce s auty na silnicích střetávají muži. U žen je to výrazně nižší číslo.")
 
             st.divider()
 
             st.subheader("Poměr chodců s reflexním vybavením")
-            category_conseq(df_but3[df_but3['responsible_party']=='Pedestrian'].reset_index(), 'Pedestrian', 'responsible_party', 'pedestrian_reflective_elements', 'pie')
+            category_conseq(df_but3, 'Pedestrian', 'responsible_party', 'pedestrian_reflective_elements', 'pie')
             st.text("Z této informace je zřejmé, že je absence reflexních prvků u chodců zapetených do dopravní nehody takřka pravidlem")
 
         elif selected_cause == 'Driver motor vehicle':
