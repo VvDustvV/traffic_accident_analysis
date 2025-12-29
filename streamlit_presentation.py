@@ -150,7 +150,7 @@ def translate(table):
 
 
     for column in to_translate:
-        if column in table.column:
+        if column in table.columns:
             table = categories_translate(table, column)
     return table
 
