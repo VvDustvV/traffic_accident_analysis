@@ -276,6 +276,7 @@ if st.session_state.active_dashboard == 'None':
     'OPRAVA NÁZVŮ!!!')
 
 elif st.session_state.active_dashboard == 'obecný_přehled':
+    st.info("❗Data za rok 2025 jsou nekompletní. Chybí celý prosinec. Výsledky jsou proto zkreslené.")
     col1, col2, col3 = st.columns(3, gap="medium")
     df_but1 = execute_sql("SELECT p1, accident_year, accident_month, p13a as úmrtí, p14 as hmotná_škoda FROM accidents_in_time")
     years = sorted(df_but1['accident_year'].unique())
